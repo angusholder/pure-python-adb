@@ -28,7 +28,6 @@ class Sync:
 
         stat = os.stat(src)
 
-        stream = open(src, 'rb')
         timestamp = int(stat.st_mtime)
 
         # SEND
@@ -40,13 +39,14 @@ class Sync:
         self._send_str(Protocol.SEND, args)
 
         # DATA
-        while True:
-            chunk = stream.read(self.DATA_MAX_LENGTH)
-            if not chunk:
-                break
+        with open(src, 'rb') as stream:
+            while True:
+                chunk = stream.read(self.DATA_MAX_LENGTH)
+                if not chunk:
+                    break
 
-            self._send_length(Protocol.DATA, len(chunk))
-            self.connection.write(chunk)
+                self._send_length(Protocol.DATA, len(chunk))
+                self.connection.write(chunk)
 
         # DONE
         self._send_length(Protocol.DONE, timestamp)
